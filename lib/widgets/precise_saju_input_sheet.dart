@@ -53,7 +53,7 @@ class _PreciseSajuInputSheetState extends State<PreciseSajuInputSheet> {
         initial?.timePrecision ??
         (widget.birthInput.hasKnownTime
             ? TimePrecision.exact
-            : TimePrecision.branch);
+            : widget.birthInput.timePrecision);
     _isLeapMonth = initial?.isLeapMonth ?? false;
     _exactHour = initial?.exactHour ?? widget.birthInput.hour ?? 12;
     _exactMinute = initial?.exactMinute ?? widget.birthInput.minute ?? 0;
@@ -187,7 +187,7 @@ class _PreciseSajuInputSheetState extends State<PreciseSajuInputSheet> {
                     trailing: const Icon(Icons.schedule),
                     onTap: _pickExactTime,
                   )
-                else
+                else if (_timePrecision == TimePrecision.branch)
                   DropdownButtonFormField<TimeBranchSlot>(
                     initialValue: _timeBranchSlot,
                     decoration: const InputDecoration(labelText: '시지 구간'),
@@ -211,6 +211,18 @@ class _PreciseSajuInputSheetState extends State<PreciseSajuInputSheet> {
                         _timeBranchSlot = value;
                       });
                     },
+                  ),
+                if (_timePrecision == TimePrecision.unknown)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Text('출생 시간이 없으면 시주는 정오 기준의 간이 판독으로 읽습니다.'),
                   ),
                 const SizedBox(height: 12),
                 Container(

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../logic/cards_logic.dart';
 import '../models/card_draw_result.dart';
+import '../services/app_repository.dart';
 import '../services/auth_service.dart';
-import '../services/firestore_service.dart';
 import '../utils/date_utils.dart';
 import '../widgets/app_button.dart';
 import '../widgets/card_box.dart';
@@ -30,7 +30,7 @@ class _CardsScreenState extends State<CardsScreen> {
     final String? uid =
         AuthService.currentUid ?? await AuthService.ensureSignedIn();
     final String todayKey = AppDateUtils.dayKey(DateTime.now());
-    final CardDrawResult? result = await FirestoreService.instance.getCardDraw(
+    final CardDrawResult? result = await AppRepository.instance.getCardDraw(
       uid,
       todayKey,
     );
@@ -56,7 +56,7 @@ class _CardsScreenState extends State<CardsScreen> {
       uid ?? 'guest',
       DateTime.now(),
     );
-    await FirestoreService.instance.saveCardDraw(uid, result);
+    await AppRepository.instance.saveCardDraw(uid, result);
 
     if (!mounted) {
       return;
@@ -80,8 +80,8 @@ class _CardsScreenState extends State<CardsScreen> {
               padding: const EdgeInsets.all(20),
               child: Text(
                 _result == null
-                    ? '오늘 카드가 아직 없습니다. 아래 버튼으로 한 번 뽑아보세요.'
-                    : '오늘 카드는 이미 생성되었습니다. 같은 날짜에는 같은 카드 결과를 보여줍니다.',
+                    ? '오늘 카드는 아직 없습니다. 오늘 운세와 별개로, 감정 결이나 애매한 흐름을 한 번 더 읽고 싶을 때 보는 카드입니다.'
+                    : '오늘 카드는 이미 생성되었습니다. 같은 날짜에는 같은 카드 결과를 보여주고, 오늘 운세와는 별개로 감성적인 흐름 읽기에 가깝습니다.',
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ),
@@ -92,8 +92,8 @@ class _CardsScreenState extends State<CardsScreen> {
               padding: const EdgeInsets.all(20),
               child: Text(
                 '카드 시스템은 5개 슬롯 x 각 10개 표현을 조합해 총 100,000가지 결과를 만듭니다. '
-                '좋고 나쁨을 단정하기보다 애매한 흐름과 신호를 읽는 톤으로 설계했습니다. '
-                '같은 사용자와 같은 날짜에는 항상 같은 번호가 나옵니다.',
+                '오늘 운세가 명리 기반의 방향을 보여준다면, 오늘 카드는 그날의 분위기와 여운을 읽는 감성 카드에 가깝습니다. '
+                '같은 사용자와 같은 날짜에는 항상 같은 카드가 나옵니다.',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),

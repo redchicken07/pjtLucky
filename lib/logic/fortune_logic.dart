@@ -36,19 +36,30 @@ class FortuneLogic {
       birthInput,
       preciseResult: precise,
     );
-    return _buildTodayFortuneInternal(quick: quick, precise: precise, now: now);
+    return _buildTodayFortuneInternal(
+      quick: quick,
+      precise: precise,
+      now: now,
+      birthInput: birthInput,
+    );
   }
 
   static Future<FortuneResult> buildTodayFortune(
     SajuResult saju,
     DateTime now,
   ) async {
-    return _buildTodayFortuneInternal(quick: saju, precise: null, now: now);
+    return _buildTodayFortuneInternal(
+      quick: saju,
+      precise: null,
+      now: now,
+      birthInput: null,
+    );
   }
 
   static Future<FortuneResult> _buildTodayFortuneInternal({
     required SajuResult quick,
     required DateTime now,
+    required BirthInput? birthInput,
     PreciseSajuResult? precise,
   }) async {
     final Map<String, dynamic> catalog = await _loadCatalog();
@@ -147,6 +158,14 @@ class FortuneLogic {
       categoryScores: categoryScores,
       now: now,
     );
+    final ({List<int> numbers, String headline, String message}) luckyNumbers =
+        _buildLuckyNumbers(
+          birthInput: birthInput,
+          quick: quick,
+          precise: precise,
+          score: score,
+          now: now,
+        );
 
     return FortuneResult(
       dateKey: AppDateUtils.dayKey(now),
@@ -159,6 +178,9 @@ class FortuneLogic {
       signals: _buildSignals(quick: quick, precise: precise),
       categoryScores: categoryScores,
       categoryNarratives: categoryNarratives,
+      luckyNumbers: luckyNumbers.numbers,
+      luckyNumbersHeadline: luckyNumbers.headline,
+      luckyNumbersMessage: luckyNumbers.message,
     );
   }
 
@@ -496,6 +518,43 @@ class FortuneLogic {
       return '유의';
     }
     return '주의';
+  }
+
+  static ({List<int> numbers, String headline, String message})
+  _buildLuckyNumbers({
+    required BirthInput? birthInput,
+    required SajuResult quick,
+    required PreciseSajuResult? precise,
+    required int score,
+    required DateTime now,
+  }) {
+    final String profileSignature = birthInput?.signature ?? quick.summary;
+    final String personalSeed = birthInput?.name.trim().isNotEmpty == true
+        ? birthInput!.name.trim()
+        : quick.animal;
+    final String signalSeed = precise == null
+        ? '${quick.dayMaster}-${quick.dominantTenGod}-${quick.supportElement}'
+        : '${precise.dayMaster}-${precise.dominantTenGod}-${precise.weakestElement}-${precise.strengthLabel}';
+    final String seed =
+        '${AppDateUtils.dayKey(now)}|$profileSignature|$personalSeed|$score|${_buildSignals(quick: quick, precise: precise).join('|')}|$signalSeed';
+
+    final Set<int> unique = <int>{};
+    int salt = 0;
+    while (unique.length < 3) {
+      final int value = (_stableHash('$seed|$salt') % 45) + 1;
+      unique.add(value);
+      salt += 1;
+    }
+
+    final List<int> numbers = unique.toList()..sort();
+    final String namePrefix = birthInput?.hasName == true
+        ? '${birthInput!.name.trim()}님에게 '
+        : '';
+    final String headline = '$namePrefix오늘 흐름에 맞는 추천 숫자';
+    final String message = precise == null
+        ? '오늘은 ${quick.supportElement} 보완 흐름과 ${quick.dominantTenGod} 결을 기준으로 숫자를 골랐습니다. 당첨 보장을 뜻하기보다, 오늘의 리듬을 상징적으로 붙잡는 추천 번호입니다.'
+        : '오늘은 ${precise.dayMaster} 일간과 ${precise.dominantTenGod} 흐름, ${precise.weakestElement} 보완 축을 함께 반영해 숫자를 골랐습니다. 당첨 보장이 아니라 오늘 운의 결을 가볍게 붙잡는 추천 번호로 보시면 됩니다.';
+    return (numbers: numbers, headline: headline, message: message);
   }
 
   static Future<Map<String, dynamic>> _loadCatalog() async {

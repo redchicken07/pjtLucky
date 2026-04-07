@@ -23,6 +23,9 @@ void main() {
         '애정운': '애정은 감정보다 타이밍과 말의 온도를 먼저 보는 편이 좋습니다.',
         '건강운': '건강은 피로를 한 번에 푸는 것보다 리듬을 무너뜨리지 않는 편이 중요합니다.',
       },
+      luckyNumbers: <int>[7, 18, 33],
+      luckyNumbersHeadline: '오늘 흐름에 맞는 추천 숫자',
+      luckyNumbersMessage: '오늘의 리듬을 상징적으로 붙잡는 추천 번호입니다.',
     );
 
     await tester.pumpWidget(

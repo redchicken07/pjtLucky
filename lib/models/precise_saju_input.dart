@@ -1,86 +1,7 @@
 import 'birth_input.dart';
+import 'profile_options.dart';
 
-enum CalendarType {
-  solar('solar', '양력'),
-  lunar('lunar', '음력');
-
-  const CalendarType(this.key, this.label);
-
-  final String key;
-  final String label;
-
-  static CalendarType fromKey(String? key) {
-    return values.firstWhere(
-      (CalendarType value) => value.key == key,
-      orElse: () => CalendarType.solar,
-    );
-  }
-}
-
-enum TimePrecision {
-  exact('exact', '정확한 시각'),
-  branch('branch', '시지 단위');
-
-  const TimePrecision(this.key, this.label);
-
-  final String key;
-  final String label;
-
-  static TimePrecision fromKey(String? key) {
-    return values.firstWhere(
-      (TimePrecision value) => value.key == key,
-      orElse: () => TimePrecision.exact,
-    );
-  }
-}
-
-enum TimeBranchSlot {
-  zi('zi', '자시', '子', '23:00~00:59', 0, 30),
-  chou('chou', '축시', '丑', '01:00~02:59', 2, 0),
-  yin('yin', '인시', '寅', '03:00~04:59', 4, 0),
-  mao('mao', '묘시', '卯', '05:00~06:59', 6, 0),
-  chen('chen', '진시', '辰', '07:00~08:59', 8, 0),
-  si('si', '사시', '巳', '09:00~10:59', 10, 0),
-  wu('wu', '오시', '午', '11:00~12:59', 12, 0),
-  wei('wei', '미시', '未', '13:00~14:59', 14, 0),
-  shen('shen', '신시', '申', '15:00~16:59', 16, 0),
-  you('you', '유시', '酉', '17:00~18:59', 18, 0),
-  xu('xu', '술시', '戌', '19:00~20:59', 20, 0),
-  hai('hai', '해시', '亥', '21:00~22:59', 22, 0);
-
-  const TimeBranchSlot(
-    this.key,
-    this.label,
-    this.hanja,
-    this.rangeLabel,
-    this.resolvedHour,
-    this.resolvedMinute,
-  );
-
-  final String key;
-  final String label;
-  final String hanja;
-  final String rangeLabel;
-  final int resolvedHour;
-  final int resolvedMinute;
-
-  static TimeBranchSlot fromKey(String? key) {
-    return values.firstWhere(
-      (TimeBranchSlot value) => value.key == key,
-      orElse: () => TimeBranchSlot.wu,
-    );
-  }
-
-  static TimeBranchSlot fromHour(int? hour) {
-    if (hour == null) {
-      return TimeBranchSlot.wu;
-    }
-    if (hour == 23 || hour == 0) {
-      return TimeBranchSlot.zi;
-    }
-    return values[(hour + 1) ~/ 2];
-  }
-}
+export 'profile_options.dart';
 
 class PreciseSajuInput {
   const PreciseSajuInput({
@@ -103,16 +24,23 @@ class PreciseSajuInput {
 
   int get resolvedHour => timePrecision == TimePrecision.exact
       ? (exactHour ?? 12)
-      : (timeBranchSlot ?? TimeBranchSlot.wu).resolvedHour;
+      : timePrecision == TimePrecision.branch
+      ? (timeBranchSlot ?? TimeBranchSlot.wu).resolvedHour
+      : 12;
 
   int get resolvedMinute => timePrecision == TimePrecision.exact
       ? (exactMinute ?? 0)
-      : (timeBranchSlot ?? TimeBranchSlot.wu).resolvedMinute;
+      : timePrecision == TimePrecision.branch
+      ? (timeBranchSlot ?? TimeBranchSlot.wu).resolvedMinute
+      : 0;
 
   String get basisLabel {
     final String calendarLabel = calendarType.label;
     if (timePrecision == TimePrecision.exact) {
       return '$calendarLabel · 정확한 시각 기준';
+    }
+    if (timePrecision == TimePrecision.unknown) {
+      return '$calendarLabel · 출생 시간 미상 기준';
     }
     final TimeBranchSlot slot = timeBranchSlot ?? TimeBranchSlot.wu;
     return '$calendarLabel · ${slot.label} 기준 간이 판독';
@@ -124,13 +52,20 @@ class PreciseSajuInput {
       final String minuteLabel = (exactMinute ?? 0).toString().padLeft(2, '0');
       return '$hourLabel:$minuteLabel';
     }
+    if (timePrecision == TimePrecision.unknown) {
+      return '시간 미상';
+    }
     final TimeBranchSlot slot = timeBranchSlot ?? TimeBranchSlot.wu;
     return '${slot.label} ${slot.rangeLabel}';
   }
 
   String get signature =>
       '${calendarType.key}-${isLeapMonth == true ? 'leap' : 'plain'}'
-      '-${timePrecision.key}-${timePrecision == TimePrecision.exact ? timeDisplayLabel : (timeBranchSlot ?? TimeBranchSlot.wu).key}';
+      '-${timePrecision.key}-${timePrecision == TimePrecision.exact
+          ? timeDisplayLabel
+          : timePrecision == TimePrecision.branch
+          ? (timeBranchSlot ?? TimeBranchSlot.wu).key
+          : 'unknown'}';
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
@@ -158,13 +93,17 @@ class PreciseSajuInput {
 
   factory PreciseSajuInput.defaultForBirth(BirthInput input) {
     return PreciseSajuInput(
-      calendarType: CalendarType.solar,
+      calendarType: input.calendarType,
+      isLeapMonth: input.isLunar ? input.isLeapMonth : null,
       timePrecision: input.hasKnownTime
           ? TimePrecision.exact
-          : TimePrecision.branch,
+          : input.timePrecision == TimePrecision.branch
+          ? TimePrecision.branch
+          : TimePrecision.unknown,
       exactHour: input.hour,
       exactMinute: input.minute,
-      timeBranchSlot: TimeBranchSlot.fromHour(input.hour),
+      timeBranchSlot:
+          input.timeBranchSlot ?? TimeBranchSlot.fromHour(input.hour),
     );
   }
 

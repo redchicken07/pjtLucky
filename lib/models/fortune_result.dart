@@ -10,6 +10,9 @@ class FortuneResult {
     required this.signals,
     required this.categoryScores,
     required this.categoryNarratives,
+    required this.luckyNumbers,
+    required this.luckyNumbersHeadline,
+    required this.luckyNumbersMessage,
   });
 
   final String dateKey;
@@ -22,6 +25,9 @@ class FortuneResult {
   final List<String> signals;
   final Map<String, int> categoryScores;
   final Map<String, String> categoryNarratives;
+  final List<int> luckyNumbers;
+  final String luckyNumbersHeadline;
+  final String luckyNumbersMessage;
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
@@ -35,6 +41,9 @@ class FortuneResult {
       'signals': signals,
       'categoryScores': categoryScores,
       'categoryNarratives': categoryNarratives,
+      'luckyNumbers': luckyNumbers,
+      'luckyNumbersHeadline': luckyNumbersHeadline,
+      'luckyNumbersMessage': luckyNumbersMessage,
     };
   }
 
@@ -52,6 +61,12 @@ class FortuneResult {
           .toList()),
       categoryScores: _asScoreMap(map['categoryScores']),
       categoryNarratives: _asTextMap(map['categoryNarratives']),
+      luckyNumbers: ((map['luckyNumbers'] as List<dynamic>? ?? <dynamic>[])
+          .map((dynamic value) => _asInt(value))
+          .where((int value) => value > 0)
+          .toList()),
+      luckyNumbersHeadline: (map['luckyNumbersHeadline'] as String?) ?? '',
+      luckyNumbersMessage: (map['luckyNumbersMessage'] as String?) ?? '',
     );
   }
 

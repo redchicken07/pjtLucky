@@ -209,8 +209,8 @@ class SajuLogic {
     BirthInput input, {
     PreciseSajuResult? preciseResult,
   }) {
-    final int hour = input.hour ?? 12;
-    final int minute = input.minute ?? 0;
+    final int hour = input.resolvedHour;
+    final int minute = input.resolvedMinute;
     final int seasonIndex = _seasonIndex(input.month);
     final int timeBlockIndex = _timeBlockIndex(hour, minute);
     final PreciseSajuResult precise =
@@ -257,6 +257,8 @@ class SajuLogic {
     final String timeTone = _timeBlocks[timeBlockIndex];
     final String timeBranch = input.hasKnownTime
         ? '${precise.fourPillars.last.reading} 시주'
+        : input.hasBranchTime
+        ? '${input.timeBranchSlot?.label ?? '시지'} 기준'
         : '시간 미상';
     final String animalTrait = _animalTraits[animal] ?? '흐름을 잘 읽는 편';
     final String elementTrait = _elementTraits[element] ?? '흐름을 부드럽게 잇는 감각';
@@ -283,7 +285,9 @@ class SajuLogic {
         '${_trimTrailingPeriod(precise.riskNarrative)}';
     final String timePhrase = input.hasKnownTime
         ? '$timeTone 기운과 $timeBranch 흐름이 더해져'
-        : '태어난 시간이 없어 시주는 비워 두고 기본 리듬으로 읽으면';
+        : input.hasBranchTime
+        ? '${input.timeBranchSlot?.label ?? '시지'} 구간 흐름을 기준으로 읽으면'
+        : '태어난 시간이 없어 시주는 정오 기준의 간이 흐름으로 읽으면';
 
     return SajuResult(
       animal: animal,

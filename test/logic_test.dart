@@ -45,6 +45,19 @@ void main() {
     expect(first.summary, contains('일간'));
   });
 
+  test('birth input reads legacy docs with sensible defaults', () {
+    final BirthInput input = BirthInput.fromMap(<String, dynamic>{
+      'year': 1992,
+      'month': 10,
+      'day': 7,
+      'gender': '남성',
+    });
+
+    expect(input.calendarType, CalendarType.solar);
+    expect(input.timePrecision, TimePrecision.unknown);
+    expect(input.name, isEmpty);
+  });
+
   test('card numbering maps exactly to 100000 combinations', () {
     expect(CardsLogic.totalCombinations, 100000);
     expect(CardsLogic.slotIndexesFromDrawNumber(1), <int>[0, 0, 0, 0, 0]);
@@ -102,6 +115,12 @@ void main() {
     expect(fortune.categoryNarratives.length, 4);
     expect(fortune.categoryNarratives['금전운'], isNotEmpty);
     expect(fortune.focus, contains('행운색'));
+    expect(fortune.luckyNumbers, hasLength(3));
+    expect(fortune.luckyNumbers.toSet().length, 3);
+    expect(
+      fortune.luckyNumbers.every((int item) => item >= 1 && item <= 45),
+      isTrue,
+    );
   });
 
   test(
@@ -131,6 +150,8 @@ void main() {
       );
       expect(fortune.categoryScores['종합'], isNotNull);
       expect(fortune.categoryNarratives['애정운'], isNotEmpty);
+      expect(fortune.luckyNumbersHeadline, isNotEmpty);
+      expect(fortune.luckyNumbersMessage, isNotEmpty);
     },
   );
 
@@ -229,7 +250,7 @@ void main() {
     final branchInput = PreciseSajuInput.defaultForBirth(unknownTimeBirth);
 
     expect(exactInput.timePrecision, TimePrecision.exact);
-    expect(branchInput.timePrecision, TimePrecision.branch);
+    expect(branchInput.timePrecision, TimePrecision.unknown);
   });
 
   test('always unlocked reward service keeps unlock API ready', () async {

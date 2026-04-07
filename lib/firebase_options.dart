@@ -9,7 +9,9 @@ class DefaultFirebaseOptions {
       final String messagingSenderId = const String.fromEnvironment(
         'FIREBASE_MESSAGING_SENDER_ID',
       );
-      final String projectId = const String.fromEnvironment('FIREBASE_PROJECT_ID');
+      final String projectId = const String.fromEnvironment(
+        'FIREBASE_PROJECT_ID',
+      );
 
       if (apiKey.isEmpty ||
           appId.isEmpty ||

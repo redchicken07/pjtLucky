@@ -270,6 +270,8 @@ class PreciseSajuLogic {
     final String branchTimingNote =
         preciseInput.timePrecision == TimePrecision.branch
         ? '이번 결과는 ${preciseInput.timeBranchSlot?.label ?? '시지'} 기준 간이 판독입니다. 분 단위 차이와 자시 경계는 반영하지 않습니다.'
+        : preciseInput.timePrecision == TimePrecision.unknown
+        ? '출생 시간이 없어 시주는 정오 기준으로 보정한 간이 판독입니다. 시간까지 정확한 결과를 원하면 프로필에서 시간 정보를 더 구체적으로 입력해 주세요.'
         : '이번 결과는 분 단위까지 반영한 정밀 시각 기준입니다.';
 
     final List<PrecisePillar> pillars = <PrecisePillar>[
